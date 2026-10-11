@@ -1,0 +1,17 @@
+{
+  "name": "身材管理打卡 · 12 周",
+  "short_name": "身材打卡",
+  "description": "12 周减脂训练与饮食打卡",
+  "lang": "zh-CN",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F4F8F7",
+  "theme_color": "#2F5D62",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
