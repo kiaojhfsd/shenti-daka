@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#2F5D62" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="身材打卡" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<link rel="icon" type="image/png" href="icon-192.png" />
+<title>身材管理打卡 · 12 周</title>
+<style>
+:root{
+  --teal:#2F5D62; --teal-d:#22464A; --teal-l:#E9F1F0; --teal-m:#9CC0BE;
+  --accent:#E8933C; --ok:#37855A; --ok-l:#DFF3E5; --warm:#FDF3E7;
+  --ink:#1C2A2B; --sub:#6C7B7C; --line:#DCE6E5; --bg:#F4F8F7; --card:#fff;
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-t:env(safe-area-inset-top,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  background:var(--bg);color:var(--ink);font-size:15px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;overscroll-behavior-y:none;
+}
+#app{max-width:540px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;background:var(--bg);position:relative}
+
+/* ── 顶部 ── */
+header{background:linear-gradient(160deg,#356B70,#22464A);color:#fff;padding:calc(var(--safe-t) + 14px) 16px 14px;position:sticky;top:0;z-index:20}
+.hd-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.hd-title{font-size:17px;font-weight:700;letter-spacing:.3px}
+.hd-date{font-size:13px;opacity:.82;font-variant-numeric:tabular-nums}
+.hd-sub{margin-top:3px;font-size:12.5px;opacity:.8}
+.bar{margin-top:11px;height:5px;border-radius:99px;background:rgba(255,255,255,.22);overflow:hidden}
+.bar > i{display:block;height:100%;background:linear-gradient(90deg,#8FD3C7,#F2A65A);border-radius:99px;transition:width .35s ease}
+
+/* ── 主体 ── */
+main{flex:1;padding:14px 14px calc(96px + var(--safe-b))}
+.view{display:none;animation:fade .18s ease}
+.view.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.card.tight{padding:12px}
+.sec-title{font-size:12.5px;font-weight:700;color:var(--teal);letter-spacing:.4px;margin:18px 4px 8px}
+.sec-title:first-child{margin-top:4px}
+.muted{color:var(--sub);font-size:13px}
+.tiny{font-size:12px;color:var(--sub)}
+h1{font-size:20px;line-height:1.35;margin:6px 0 6px}
+h2{font-size:15px;margin:0 0 8px}
+
+/* ── 今日 ── */
+.hero{background:linear-gradient(155deg,#FFFFFF,#F3F8F7);position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;right:-40px;top:-40px;width:130px;height:130px;border-radius:50%;background:var(--teal-l)}
+.hero > *{position:relative;z-index:1}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:2px}
+.chip{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--teal-l);color:var(--teal-d)}
+.chip.warm{background:var(--warm);color:#9A5B12}
+.chip.ok{background:var(--ok-l);color:var(--ok)}
+
+.nav-days{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.nav-days button{border:1px solid var(--line);background:#fff;color:var(--teal);width:38px;height:38px;border-radius:12px;font-size:17px;line-height:1}
+.nav-days .lbl{font-size:13.5px;color:var(--sub);font-variant-numeric:tabular-nums}
+.nav-days .lbl b{color:var(--ink)}
+
+.grid2{display:flex;gap:10px;flex-wrap:wrap}
+.chk{flex:1 1 calc(50% - 5px);min-height:76px;border-radius:15px;border:1.5px solid var(--line);background:#fff;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:10px 6px;transition:.15s;font-family:inherit}
+.chk .ic{font-size:21px;line-height:1}
+.chk .nm{font-size:13px;font-weight:600;color:var(--ink)}
+.chk .st{font-size:11px;color:var(--sub)}
+.chk.on{border-color:var(--ok);background:var(--ok-l)}
+.chk.on .nm{color:var(--ok)}
+.chk.on .st{color:var(--ok)}
+.chk:active{transform:scale(.97)}
+
+.exbar{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.mini{border:1px solid var(--line);background:#F7FAFA;color:var(--teal-d);font-family:inherit;
+  font-size:12px;font-weight:600;padding:6px 10px;border-radius:9px;line-height:1.2}
+.mini:active{opacity:.75}
+.mini.solid{background:var(--teal);color:#fff;border-color:var(--teal)}
+.mini.act{background:var(--teal-l);border-color:var(--teal-m)}
+.tips{display:none;margin-top:9px;background:#F7FAFA;border:1px solid var(--line);
+  border-radius:11px;padding:10px;font-size:12.5px;color:#33474A}
+.tips.on{display:block}
+.tips .row{margin-bottom:6px;display:flex;gap:7px}
+.tips .row:last-child{margin-bottom:0}
+.tips .row i{font-style:normal;flex:none;font-weight:700;color:var(--teal);width:44px}
+.tips .row.warn i{color:#B4463C}
+.warm{display:flex;flex-wrap:wrap;gap:6px}
+.warm .wchip{border:1px solid var(--line);background:#fff;border-radius:10px;padding:6px 9px;font-size:12px}
+.daymoves{display:none;margin-top:2px}
+.daymoves.on{display:block}
+
+.field{display:flex;align-items:center;gap:10px;margin:10px 0 0}
+.field label{font-size:13.5px;color:var(--sub);width:74px;flex:none}
+input,textarea,select{font-family:inherit;font-size:15px;color:var(--ink);background:#fff;
+  border:1px solid var(--line);border-radius:11px;padding:9px 11px;width:100%;outline:none}
+input:focus,textarea:focus,select:focus{border-color:var(--teal-m);box-shadow:0 0 0 3px rgba(47,93,98,.08)}
+textarea{resize:vertical;min-height:62px}
+.unit{font-size:13px;color:var(--sub);flex:none}
+.btn{border:none;border-radius:12px;padding:11px 16px;font-size:14px;font-weight:600;font-family:inherit;
+  background:var(--teal);color:#fff}
+.btn.ghost{background:var(--teal-l);color:var(--teal-d)}
+.btn.line{background:#fff;border:1px solid var(--line);color:var(--ink)}
+.btn.danger{background:#FDECEC;color:#B4463C}
+.btn:active{opacity:.85}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+
+.ring-row{display:flex;align-items:center;gap:14px}
+.ring{width:74px;height:74px;flex:none;position:relative}
+.ring svg{transform:rotate(-90deg)}
+.ring .val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:700;color:var(--teal)}
+
+/* ── 表格 ── */
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:12px;color:var(--sub);font-weight:600;background:#F7FAFA}
+td.n,th.n{text-align:center;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+.tbl-wrap{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
+
+/* ── 训练动作 ── */
+.ex{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.ex:last-child{border-bottom:none}
+.tick{width:24px;height:24px;flex:none;border-radius:8px;border:1.5px solid var(--line);background:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;margin-top:1px}
+.tick.on{background:var(--ok);border-color:var(--ok)}
+.ex .nm{font-size:14px;font-weight:600}
+.ex .mt{font-size:12.5px;color:var(--sub);margin-top:1px}
+.daycard.locked{opacity:.97}
+.daycard.today{border-color:var(--teal-m);box-shadow:0 0 0 3px rgba(47,93,98,.07)}
+
+/* ── 数据 ── */
+.kpis{display:flex;gap:10px}
+.kpi{flex:1;background:#fff;border:1px solid var(--line);border-radius:14px;padding:11px 10px;text-align:center}
+.kpi .v{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}
+.kpi .k{font-size:11.5px;color:var(--sub);margin-top:2px}
+canvas{width:100%;height:186px;display:block}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--sub);margin-top:6px;padding-left:2px}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+
+/* ── 底部导航 ── */
+nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:rgba(255,255,255,.96);
+  backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:var(--safe-b)}
+nav .inner{max-width:540px;margin:0 auto;display:flex}
+nav button{flex:1;border:none;background:none;padding:8px 0 9px;font-family:inherit;
+  display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--sub)}
+nav button .ic{font-size:19px;line-height:1.1}
+nav button .tx{font-size:10.5px;font-weight:600}
+nav button.on{color:var(--teal)}
+nav button.on .ic{transform:translateY(-1px)}
+
+.toast{position:fixed;left:50%;bottom:calc(88px + var(--safe-b));transform:translate(-50%,12px);
+  background:rgba(28,42,43,.93);color:#fff;font-size:13.5px;padding:9px 16px;border-radius:99px;
+  opacity:0;pointer-events:none;transition:.22s;z-index:60;white-space:nowrap}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.empty{text-align:center;color:var(--sub);font-size:13.5px;padding:26px 10px}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="hd-row">
+      <span class="hd-title" id="hdTitle">身材管理打卡</span>
+      <span class="hd-date" id="hdDate"></span>
+    </div>
+    <div class="hd-sub" id="hdSub"></div>
+    <div class="bar"><i id="hdBar" style="width:0%"></i></div>
+  </header>
+
+  <main>
+    <section class="view on" id="v-today"></section>
+    <section class="view" id="v-train"></section>
+    <section class="view" id="v-diet"></section>
+    <section class="view" id="v-data"></section>
+    <section class="view" id="v-set"></section>
+  </main>
+
+  <nav>
+    <div class="inner">
+      <button data-go="today" class="on"><span class="ic">✅</span><span class="tx">今日</span></button>
+      <button data-go="train"><span class="ic">🏋️</span><span class="tx">训练</span></button>
+      <button data-go="diet"><span class="ic">🍚</span><span class="tx">饮食</span></button>
+      <button data-go="data"><span class="ic">📈</span><span class="tx">数据</span></button>
+      <button data-go="set"><span class="ic">⚙️</span><span class="tx">设置</span></button>
+    </div>
+  </nav>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ══════════════ 静态内容 ══════════════ */
+const PLANS = {
+  A:{ tag:"力量A", title:"下肢（深蹲主导）+ 核心", short:"力量A · 下肢 + 核心", moves:[
+    ["高脚杯深蹲（哑铃 / 壶铃）","4 × 10–12","90 秒","自重深蹲 4 × 15"],
+    ["罗马尼亚硬拉","3 × 10","90 秒","单腿臀桥 3 × 12 / 腿"],
+    ["保加利亚分腿蹲","3 × 10 / 腿","60 秒","后脚垫高箭步蹲"],
+    ["臀桥 / 髋推","3 × 12–15","60 秒","臀桥顶峰停 2 秒"],
+    ["站姿提踵","3 × 15","45 秒","同动作，扶墙保持平衡"],
+    ["死虫式","3 × 12","45 秒","平板支撑 3 × 40 秒"]
+  ]},
+  B:{ tag:"力量B", title:"上肢推（胸 / 肩 / 三头）", short:"力量B · 上肢推", moves:[
+    ["哑铃卧推","4 × 8–12","90 秒","俯卧撑 4 × 8–15"],
+    ["坐姿哑铃肩推","3 × 10","60 秒","弹力带过头推举"],
+    ["上斜哑铃卧推","3 × 10","60 秒","脚垫高俯卧撑"],
+    ["侧平举","3 × 12–15","45 秒","弹力带侧平举"],
+    ["绳索下压 / 板凳臂屈伸","3 × 12","45 秒","窄距俯卧撑"],
+    ["平板支撑","3 × 40 秒","45 秒","死虫式 3 × 12"]
+  ]},
+  C:{ tag:"力量C", title:"下肢（髋 / 臀）+ 核心", short:"力量C · 下肢髋臀", moves:[
+    ["罗马尼亚硬拉","4 × 8–10","90 秒","单腿硬拉 3 × 10 / 腿"],
+    ["腿举 / 高脚杯深蹲","3 × 12","60 秒","后撤箭步蹲 3 × 12 / 腿"],
+    ["腿弯举","3 × 12","60 秒","毛巾腿弯举 / 单腿臀桥"],
+    ["髋外展（器械或弹力带）","3 × 15","45 秒","弹力带侧向走 3 × 15 步"],
+    ["卷腹 / 悬垂举腿","3 × 12","45 秒","仰卧抬腿 3 × 15"],
+    ["侧平板","3 × 30 秒 / 侧","45 秒","侧卧抬髋 3 × 12"]
+  ]},
+  D:{ tag:"力量D", title:"上肢拉（背 / 二头）", short:"力量D · 上肢拉", moves:[
+    ["高位下拉 / 引体向上","4 × 8–10","90 秒","弹力带下拉 4 × 12"],
+    ["坐姿划船","3 × 10–12","60 秒","弹力带划船 3 × 15"],
+    ["单臂哑铃划船","3 × 10 / 侧","60 秒","弹力带单臂划船"],
+    ["面拉 / 反向飞鸟","3 × 15","45 秒","弹力带面拉 3 × 15"],
+    ["哑铃弯举","3 × 12","45 秒","弹力带弯举 3 × 15"],
+    ["农夫行走","3 × 30 秒","45 秒","拎两瓶矿泉水走"]
+  ]}
+};
+
+/* 周一=1 … 周日=0 */
+const DOW_TASK = {1:"A",2:"B",3:"CARDIO",4:"C",5:"CARDIO",6:"D",0:"REST"};
+const TASK_TEXT = {
+  A:"力量A：下肢（深蹲主导）+ 核心",
+  B:"力量B：上肢推（胸 / 肩 / 三头）",
+  C:"力量C：下肢（髋 / 臀）+ 核心",
+  D:"力量D：上肢拉（背 / 二头）",
+  CARDIO:"快走 30–40 分钟",
+  REST:"休息 + 备餐 1 小时"
+};
+const TASK_HINT = {
+  A:"先热身 8 分钟，大动作组间休息 90 秒，练完拉伸 5 分钟。",
+  B:"推类动作保持肩胛稳定，侧平举用小重量控制。",
+  C:"硬拉注意背部平直，先想“把地面推开”。",
+  D:"拉类动作先沉肩再拉，顶峰停 1 秒。",
+  CARDIO:"心率约 120–140，能说话但不能唱歌；当天步数也记着凑够 8000。",
+  REST:"完全休息，顺手备餐：杂粮饭、鸡胸、鸡蛋、洗好蔬菜。"
+};
+const WD = ["周日","周一","周二","周三","周四","周五","周六"];
+const PHASES = [
+  {i:0, to:2,  p:120, f:55, c:181, name:"第 1–2 周 · 适应期",   tip:"先把习惯建立起来，热量不用压太狠。"},
+  {i:1, to:8,  p:120, f:50, c:165, name:"第 3–8 周 · 主要减脂期", tip:"缺口约 450–500 kcal，每周减 0.4–0.6kg。"},
+  {i:2, to:12, p:125, f:45, c:149, name:"第 9–12 周 · 冲刺期",   tip:"进度好就维持 1600，不必强求降到 1550。"}
+];
+function phaseKcal(ph){ return S.set.phaseKcal[ph.i]; }
+const MEALS = [
+  ["早餐","400","30 g","起床后 1 小时内","全麦面包 2 片 + 鸡蛋 2 个 + 无糖豆浆 250ml"],
+  ["加餐","150","15 g","上午 10 点 / 下午 3:30","无糖酸奶 150g + 坚果 10g"],
+  ["午餐","500","35 g","12:00–13:00","杂粮饭 1 拳 + 鸡胸或瘦牛肉 150g + 蔬菜 2 拳 + 油 1 勺"],
+  ["晚餐","550","40 g","练完 1 小时内 / 20:00 前","红薯或玉米 1 拳 + 鱼虾豆腐 150–200g + 蔬菜 2 拳 + 油 1 勺"]
+];
+const EXCHANGE = [
+  ["蛋白（每份 ≈ 20g）","鸡胸 100g ｜ 鸡蛋 3 个 ｜ 瘦牛肉 100g ｜ 虾 120g ｜ 豆腐 200g ｜ 无糖酸奶 250g ｜ 乳清蛋白 1 勺"],
+  ["主食（每份 ≈ 20g 碳水）","米饭半碗 ｜ 杂粮饭半碗 ｜ 红薯 100g ｜ 玉米 1 根 ｜ 全麦面包 1 片 ｜ 燕麦 25g"],
+  ["蔬菜（每餐 2 拳）","绿叶菜、西兰花、番茄、黄瓜、菌菇、白萝卜 —— 基本不限量"],
+  ["脂肪（每份 ≈ 100 kcal）","橄榄油 1 勺 ｜ 坚果 10g ｜ 牛油果 1/4 个 ｜ 芝麻酱 1 小勺"]
+];
+const CHECKS = [
+  ["train","🏋️","训练","按计划练完"],
+  ["steps","🚶","步数","≥ 8000 步"],
+  ["diet","🍚","饮食","热量达标"],
+  ["sleep","😴","睡眠","≥ 7 小时"]
+];
+
+/* ── 动作要点：起 / 做 / 错 ── */
+const TIPS = {
+  "高脚杯深蹲（哑铃 / 壶铃）":["双脚与肩同宽，脚尖略朝外，双手把哑铃抱在胸前，挺胸。",
+    "屈髋屈膝一起下蹲，膝盖顺着脚尖方向打开，蹲到大腿接近平行，再脚掌踩实站起。",
+    "膝盖内扣、弓腰、脚跟离地。蹲不下去就先蹲到一半，别硬压。"],
+  "罗马尼亚硬拉":["双脚与髋同宽，杠铃（或哑铃）贴住大腿，肩胛微微收紧。",
+    "臀部往后推，上身像鞠躬一样前倾，杠铃贴着腿往下滑到小腿中部，感觉大腿后侧被拉紧，再夹臀站起。",
+    "弓背、用腰去拽、把杠铃往前甩。全程杠铃贴着身体走。"],
+  "保加利亚分腿蹲":["后脚脚背搭在凳子或沙发上，前脚往前站一步，重心在前脚。",
+    "身体垂直往下沉，前腿膝盖对准脚尖，后腿膝盖朝地面下落，再前脚发力站起。",
+    "站太近、重心压在后面的腿、前腿膝盖内扣。前脚站远一点会舒服很多。"],
+  "臀桥 / 髋推":["上背靠在凳子边缘，双脚踩实与肩同宽，重物放在髋部（垫条毛巾）。",
+    "脚跟发力把髋顶起来，顶端用力夹紧屁股停 1 秒，再慢慢放下。",
+    "用腰去顶、下巴抬高看天花板。眼神看膝盖方向，力量来自臀部。"],
+  "站姿提踵":["前脚掌踩在台阶边缘，脚跟悬空，扶墙保持平衡。",
+    "用小腿把身体顶到最高，停 1 秒，再用 3 秒慢慢放下到脚跟低于台阶。",
+    "上下弹震、速度太快。慢放比快起更重要。"],
+  "死虫式":["仰卧，双手指向天花板，双腿屈膝 90 度抬起，腰背贴住地面。",
+    "呼气时对侧的手和脚同时缓慢伸出，快贴地时收回，再换另一边。",
+    "腰离地、憋气、用脖子发力。想象腰下面压着一张纸。"],
+  "哑铃卧推":["躺平，肩胛骨往后收并下沉，哑铃在胸口两侧，手肘约 45 度。",
+    "往上推到手臂接近伸直（别锁死），再慢慢下放到胸口高度。",
+    "手肘打开成 90 度、下放砸下来、屁股离凳。"],
+  "坐姿哑铃肩推":["背靠椅背，哑铃举到耳朵两侧，手心朝前，核心收紧。",
+    "向上推到头顶上方，手臂接近伸直，再慢慢回到耳侧。",
+    "耸肩、腰往后仰借力。重量选到能控制住的程度。"],
+  "上斜哑铃卧推":["凳子调到 30 度左右，肩胛后收，哑铃在锁骨上方。",
+    "从锁骨上沿往上推，再回到胸口上沿的位置。",
+    "凳子角度太高（超过 45 度会变成练肩）、下放过快。"],
+  "侧平举":["站直，双手拿哑铃放身体两侧，手肘微屈，手心朝下。",
+    "像倒水一样往两侧抬到与肩同高，小指略高于拇指，再慢慢放下。",
+    "甩身体借力、抬过肩膀、重量太大。这个动作轻重量反而更有效。"],
+  "绳索下压 / 板凳臂屈伸":["大臂夹紧身体两侧不动，只有小臂在动，上身微微前倾。",
+    "把绳索压到底，手臂伸直停一下，再慢慢回到 90 度。",
+    "耸肩、大臂前后甩、身体上下起伏。"],
+  "平板支撑":["手肘在肩膀正下方，脚尖点地，从头到脚一条直线。",
+    "收紧腹部和屁股，正常呼吸，撑到规定时间。",
+    "塌腰、撅屁股、憋气。撑不住就先缩短时间分两组。"],
+  "腿举 / 高脚杯深蹲":["脚踩在踏板中间与肩同宽，背和屁股贴紧靠垫。",
+    "屈膝下放到大腿与踏板约 90 度，再蹬起，膝盖保持微屈不锁死。",
+    "下放太深让腰离开靠垫、膝盖内扣、用脚尖蹬。"],
+  "腿弯举":["膝盖对准器械转轴，脚垫压在跟腱上方，双手握把手。",
+    "用大腿后侧把小腿往臀部方向弯曲到底，停 1 秒再慢慢放回。",
+    "用惯性甩、屁股抬高离开靠垫。"],
+  "髋外展（器械或弹力带）":["坐正或站直，把弹力带套在膝盖上方。",
+    "向两侧打开双腿或横向走，感受臀部外侧发力，再慢慢收回。",
+    "身体后仰借力、追求幅度过大、速度太快。"],
+  "卷腹 / 悬垂举腿":["卷腹：仰卧屈膝，双手轻放耳侧，下巴留一拳距离。",
+    "想象把肋骨往骨盆方向卷，抬起上背即可，再慢慢放下。悬垂举腿则想象把骨盆往上翻。",
+    "用手把头往前拽、靠惯性甩腿。慢一点，感受腹部收紧。"],
+  "侧平板":["侧躺，手肘在肩膀正下方，双脚叠放，另一只手叉腰。",
+    "把髋部往上顶，身体从肩到脚一条直线，撑住呼吸。",
+    "髋部往下塌、手肘不在肩下。撑不住就改成膝盖着地。"],
+  "高位下拉 / 引体向上":["握距略比肩宽，先沉肩，挺胸微微后仰。",
+    "手肘往身体两侧下方走，把胸口拉向横杆，感觉背夹紧，再慢慢放回。",
+    "耸肩用胳膊硬拉、后仰幅度太大、放回时突然松手。"],
+  "坐姿划船":["挺胸收腹，先沉肩，手臂自然前伸。",
+    "手肘贴着身体往后拉，肩胛骨夹紧停 1 秒，再慢慢伸直手臂。",
+    "用腰前后晃、耸肩、只动手臂不夹背。"],
+  "单臂哑铃划船":["一手一膝撑在凳子上，背保持水平，另一手拿哑铃自然下垂。",
+    "哑铃贴着身体往髋部方向拉，停一下再慢慢放下。",
+    "往肩膀方向拉、转动身体、弓腰。"],
+  "面拉 / 反向飞鸟":["绳索调到脸部高度，双手抓住绳子向后站一步。",
+    "手肘高于手腕，把绳子拉到脸的两侧，像“把绳子拉开”一样，再慢慢放回。",
+    "重量太大、耸肩、用手腕发力。这个动作轻重量慢速做。"],
+  "哑铃弯举":["站直，大臂贴紧身体两侧，手心朝前。",
+    "只让小臂往上弯，顶端停一下，再慢慢放下到手臂接近伸直。",
+    "用腰和肩膀借力、大臂前后晃、放下太快。"],
+  "农夫行走":["双手各拎一个重物（哑铃、水桶、矿泉水），站直。",
+    "挺胸收腹沉肩，小步快走规定时间，身体别左右晃。",
+    "含胸驼背、耸肩、步子太大让身体歪。"],
+  "开合跳":["站直，双手放身体两侧。","跳起时双脚打开、双手举过头顶，再跳回原位。","落地时膝盖微屈缓冲，别直腿砸地。"],
+  "臀桥":["仰卧屈膝，双脚踩实与髋同宽，手臂放身体两侧。","脚跟发力把髋顶起，夹紧屁股停 1 秒再放下。","用腰顶、下巴抬高。"],
+  "徒手深蹲":["双脚与肩同宽，脚尖略外八，双手前平举保持平衡。","屈髋屈膝下蹲到大腿接近平行，再站起。","膝盖内扣、脚跟离地、弓腰。"],
+  "弹力带侧步":["弹力带套在膝盖上方或脚踝，半蹲姿势，双脚略分开。","向一侧横向走 10 步，再走回来，全程保持膝盖向外顶。","膝盖内扣、身体上下起伏。"],
+  "肩绕环":["站直，双手搭在肩上或向前伸直。","用肩膀画大圈，向前 10 次、向后 10 次，幅度慢慢加大。","速度太快、耸肩用力过猛。"]
+};
+
+const WARMUP = ["开合跳","臀桥","徒手深蹲","弹力带侧步","肩绕环"];
+
+/* Keep 专用：课程名关键词 +
+   Android 上用 intent 唤起 Keep 主界面（Keep 没有开放课程搜索接口） */
+const KEEP_PKG = "com.gotokeep.keep";
+const IS_ANDROID = /android/i.test(navigator.userAgent);
+
+/* 唤起失败时，让浏览器回到本页面并带上标记，
+   这样能明确告诉用户「没打开成功」，而不是把他甩到下载页 */
+/* Keep 官方唤起方式：
+   ① App 自有协议  keep://<app 内部路由>
+   ② 官方中转页  https://show.gotokeep.com/openapp?schema=<上面那个>
+   中转页会自动尝试拉起 App，失败时给出「打开 Keep」「下载 Keep」两个按钮。 */
+function keepOpenUrl(route){
+  const schema = "keep://" + String(route||"").replace(/^\/+/,"");
+  return "https://show.gotokeep.com/openapp?schema=" + encodeURIComponent(schema);
+}
+/* 把用户从 Keep 复制来的分享链接，转成 App 内部路由
+   https://m.gotokeep.com/training/albums?id=xxx&utm_... → training/albums?id=xxx */
+function keepRouteFromLink(url){
+  const m = String(url).match(/gotokeep\.com\/([^?#]*)(\?[^#]*)?/);
+  if(!m) return null;
+  const path = m[1].replace(/^\/+|\/+$/g,"");
+  if(!path) return null;
+  const idm = (m[2]||"").match(/[?&]id=([^&#]+)/);
+  return path + (idm ? "?id=" + idm[1] : "");
+}
+const KEEP_FAILED = /[?&]keepfail=1/.test(location.search);
+
+/* 「高脚杯深蹲（哑铃 / 壶铃）」→「高脚杯深蹲」 */
+function keepKey(name){
+  return String(name).split("（")[0].split(" / ")[0].trim();
+}
+
+/* ══════════════ 数据层 ══════════════ */
+const KEY = "shenti.v1";
+const DEFAULT_SET = {
+  startDate:null, height:168, startWeight:68.8, targetWeight:63.5,
+  waistStart:80, phaseKcal:[1700,1600,1550], weeks:12,
+  links:{}, autoOpenKeep:true
+};
+let S = {set:Object.assign({},DEFAULT_SET), days:{}, weeks:{}};
+
+function todayISO(){ return iso(new Date()); }
+function iso(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,"0"), dd=String(d.getDate()).padStart(2,"0");
+  return y+"-"+m+"-"+dd;
+}
+function parseISO(s){ const p=String(s).split("-").map(Number); return new Date(p[0],p[1]-1,p[2]); }
+function addDays(s,n){ const d=parseISO(s); d.setDate(d.getDate()+n); return iso(d); }
+function diffDays(a,b){ return Math.round((parseISO(b)-parseISO(a))/86400000); }
+function r1(n){ return Math.round(n*10)/10; }
+function fmtMD(s){ const d=parseISO(s); return (d.getMonth()+1)+"月"+d.getDate()+"日"; }
+
+function load(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(raw){
+      const o = JSON.parse(raw);
+      S.set = Object.assign({},DEFAULT_SET,o.set||{});
+      if(!S.set.links) S.set.links = {};
+      S.days = o.days||{};
+      S.weeks = o.weeks||{};
+    }
+  }catch(e){ console.warn("读取失败",e); }
+  if(!S.set.startDate) S.set.startDate = todayISO();
+}
+const storageOK = (function(){
+  try{ localStorage.setItem("__probe__","1"); localStorage.removeItem("__probe__"); return true; }
+  catch(e){ return false; }
+})();
+let saveTimer=null;
+function save(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(function(){
+    try{ localStorage.setItem(KEY, JSON.stringify(S)); }
+    catch(e){ toast("保存失败，存储空间可能已满"); }
+  },120);
+}
+function dayOf(ds){
+  if(!S.days[ds]) S.days[ds] = {};
+  return S.days[ds];
+}
+function weekOf(ds){ return Math.floor(diffDays(S.set.startDate, ds)/7)+1; }
+function dayIdx(ds){ return diffDays(S.set.startDate, ds); }
+function taskOf(ds){ return DOW_TASK[parseISO(ds).getDay()]; }
+function phaseOf(week){ return PHASES.find(function(p){ return week<=p.to; }) || PHASES[PHASES.length-1]; }
+function isDeload(week){ return week===6 || week===12; }
+
+/* ══════════════ 小工具 ══════════════ */
+function esc(s){
+  return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+  });
+}
+let toastTimer=null;
+function toast(msg, ms){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.remove("on"); }, ms || 1800);
+}
+function $(sel,root){ return (root||document).querySelector(sel); }
+function $$(sel,root){ return Array.prototype.slice.call((root||document).querySelectorAll(sel)); }
+function on(root,sel,ev,fn){
+  $$(sel,root).forEach(function(el){ el.addEventListener(ev,fn); });
+}
+
+/* ══════════════ 当前查看的日期 ══════════════ */
+let cursor = todayISO();
+
+/* ══════════════ 顶部 ══════════════ */
+function renderHeader(){
+  const w = weekOf(cursor), idx = dayIdx(cursor);
+  const week = Math.min(Math.max(w,1),S.set.weeks);
+  document.getElementById("hdDate").textContent = fmtMD(cursor);
+  document.getElementById("hdTitle").textContent = "第 "+week+" 周 · "+WD[parseISO(cursor).getDay()];
+  const done = countDone(cursor);
+  document.getElementById("hdSub").textContent =
+    "今日完成 "+done+"/4"+(isDeload(week)?"　·　减量周":"" )+
+    "　·　总共第 "+(idx+1)+" 天";
+  document.getElementById("hdBar").style.width =
+    Math.min(100, Math.max(0,((idx+1)/(S.set.weeks*7))*100))+"%";
+}
+function countDone(ds){
+  const d = S.days[ds]; if(!d) return 0;
+  return CHECKS.reduce(function(n,c){ return n + (d[c[0]]?1:0); },0);
+}
+
+/* ══════════════ 视图：今日 ══════════════ */
+function renderToday(){
+  const ds = cursor;
+  const w = weekOf(ds), week = Math.min(Math.max(w,1),S.set.weeks);
+  const task = taskOf(ds), ph = phaseOf(week), d = dayOf(ds);
+  const done = countDone(ds);
+  const isToday = ds===todayISO();
+
+  let html = "";
+  /* 日期切换 */
+  html += '<div class="nav-days">'+
+    '<button data-day="-1">‹</button>'+
+    '<span class="lbl">'+(isToday?"<b>今天 · ":"")+fmtMD(ds)+(isToday?"</b>":"")+'</span>'+
+    '<button data-day="1"'+(ds>=todayISO()?" disabled style=\"opacity:.35\"":"")+'>›</button>'+
+  '</div>';
+
+  /* 今日任务 */
+  html += '<div class="card hero">'+
+    '<div class="chips">'+
+      '<span class="chip">第 '+week+' 周</span>'+
+      '<span class="chip">'+WD[parseISO(ds).getDay()]+'</span>'+
+      (isDeload(week)?'<span class="chip warm">减量周 · 组数减半</span>':'')+
+      (done===4?'<span class="chip ok">今日全勤 ✓</span>':'')+
+    '</div>'+
+    '<h1>'+esc(TASK_TEXT[task])+'</h1>'+
+    '<div class="muted">'+esc(TASK_HINT[task])+'</div>'+
+  '</div>';
+
+  /* 四个打卡 */
+  html += '<div class="grid2">';
+  CHECKS.forEach(function(c){
+    const on_ = !!d[c[0]];
+    html += '<button class="chk'+(on_?" on":"")+'" data-chk="'+c[0]+'">'+
+      '<span class="ic">'+(on_?"✅":c[1])+'</span>'+
+      '<span class="nm">'+c[2]+'</span>'+
+      '<span class="st">'+(on_?"已完成":c[3])+'</span></button>';
+  });
+  html += '</div>';
+
+  /* 晨重与备注 */
+  html += '<div class="card">'+
+    '<h2>今日记录</h2>'+
+    '<div class="field"><label>晨起体重</label>'+
+      '<input type="number" step="0.1" inputmode="decimal" id="inWeight" placeholder="'+
+      (lastWeightBefore(ds)!=null?("上次 "+lastWeightBefore(ds)):"例：68.4")+'" value="'+
+      (d.weight!=null?d.weight:"")+'"><span class="unit">kg</span></div>'+
+    '<div class="field" style="align-items:flex-start"><label style="padding-top:9px">备注</label>'+
+      '<textarea id="inNote" placeholder="今天状态怎么样？（可选）">'+esc(d.note||"")+'</textarea></div>'+
+  '</div>';
+
+  /* 今日热量 */
+  html += '<div class="card">'+
+    '<div class="ring-row">'+
+      ring(done,4)+
+      '<div style="flex:1">'+
+        '<h2 style="margin-bottom:2px">'+esc(ph.name)+'</h2>'+
+        '<div class="muted">目标 '+phaseKcal(ph)+' kcal　·　蛋白 '+ph.p+'g ｜ 脂肪 '+ph.f+'g ｜ 碳水 '+ph.c+'g</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="btn-row"><button class="btn ghost" data-go="diet">看今天怎么吃 ›</button></div>'+
+  '</div>';
+
+  /* 本周小结 */
+  const ws = weekStats(week);
+  html += '<div class="sec-title">本周小结</div><div class="kpis">'+
+    kpi(ws.trainCnt+" / 4","力量训练")+
+    kpi(ws.avgWeight!=null?ws.avgWeight:"—","周平均体重")+
+    kpi(ws.chkCnt,"打卡项数")+
+  '</div>';
+
+  document.getElementById("v-today").innerHTML = html;
+
+  /* 事件 */
+  on(document.getElementById("v-today"),"[data-day]", "click", function(){
+    if(this.disabled) return;
+    cursor = addDays(cursor, Number(this.getAttribute("data-day")));
+    renderAll();
+  });
+  on(document.getElementById("v-today"),"[data-chk]","click",function(){
+    const k = this.getAttribute("data-chk"); const dd = dayOf(cursor);
+    dd[k] = !dd[k];
+    if(k==="train" && dd[k]===true && taskOf(cursor)==="REST") toast("今天是休息日，也算完成 ✓");
+    if(k==="train" && dd[k]===false) dd.ex = [];
+    save(); renderAll();
+  });
+  const iw = document.getElementById("inWeight");
+  if(iw) iw.addEventListener("input",function(){
+    const v = this.value.trim();
+    const dd = dayOf(cursor);
+    if(v===""){ delete dd.weight; } else { dd.weight = Number(v); }
+    save(); renderHeader();
+  });
+  const inote = document.getElementById("inNote");
+  if(inote) inote.addEventListener("input",function(){
+    dayOf(cursor).note = this.value; save();
+  });
+}
+function ring(done,total){
+  const R=32, C=2*Math.PI*R, pct=Math.min(1,done/total);
+  return '<div class="ring"><svg width="74" height="74" viewBox="0 0 74 74">'+
+    '<circle cx="37" cy="37" r="'+R+'" fill="none" stroke="#E4EDEC" stroke-width="7"/>'+
+    '<circle cx="37" cy="37" r="'+R+'" fill="none" stroke="#2F5D62" stroke-width="7" stroke-linecap="round" '+
+    'stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+(C*(1-pct)).toFixed(1)+'"/>'+
+    '</svg><span class="val">'+done+'/'+total+'</span></div>';
+}
+function kpi(v,k){ return '<div class="kpi"><div class="v">'+v+'</div><div class="k">'+k+'</div></div>'; }
+function lastWeightBefore(ds){
+  let best=null;
+  Object.keys(S.days).forEach(function(k){
+    if(k<ds && S.days[k] && S.days[k].weight!=null){
+      if(best===null || k>best) best=k;
+    }
+  });
+  return best? S.days[best].weight : null;
+}
+/* 所有记录过的晨重，按日期排序，x = 相对开始日期的天数（可为负） */
+function weightPoints(){
+  const pts = [];
+  Object.keys(S.days).forEach(function(k){
+    const d = S.days[k];
+    if(d && d.weight!=null && !isNaN(Number(d.weight)) && String(d.weight).trim()!==""){
+      pts.push({x:diffDays(S.set.startDate,k), y:Number(d.weight), ds:k});
+    }
+  });
+  pts.sort(function(a,b){ return a.x-b.x; });
+  return pts;
+}
+function weekStats(week){
+  const start = addDays(S.set.startDate,(week-1)*7);
+  let ws=[], trainCnt=0, chkCnt=0;
+  for(let i=0;i<7;i++){
+    const ds = addDays(start,i), d = S.days[ds];
+    if(!d) continue;
+    if(d.weight!=null) ws.push(Number(d.weight));
+    if(d.train) trainCnt++;
+    chkCnt += countDone(ds);
+  }
+  const avg = ws.length? r1(ws.reduce(function(a,b){return a+b;},0)/ws.length) : null;
+  return {avgWeight:avg, trainCnt:trainCnt, chkCnt:chkCnt, days:ws.length};
+}
+
+/* ══════════════ 视图：训练 ══════════════ */
+function moveHtml(name, m, opts){
+  const o = opts || {};
+  const hasLink = !!(S.set.links && S.set.links[name]);
+  const tips = TIPS[name] || ["","",""];
+  let h = '<div class="ex"'+(o.tick!=null?' data-ex="'+o.tick+'"':'')+'>';
+  if(o.tick!=null){
+    h += '<div class="tick'+(o.on?" on":"")+'">'+(o.on?"✓":"")+'</div>';
+  }
+  h += '<div style="flex:1">'+
+      '<div class="nm">'+esc(name)+'</div>'+
+      '<div class="mt">'+esc(m[1])+'　·　组间休息 '+esc(m[2])+'</div>'+
+      '<div class="mt">没器械：'+esc(m[3])+'</div>'+
+      '<div class="exbar">'+
+        '<button class="mini solid" data-vid="'+esc(name)+'">▶ '+(hasLink?"打开 Keep 课程":"在 Keep 里找")+'</button>'+
+        '<button class="mini" data-tip="1">动作要点</button>'+
+        '<button class="mini'+(hasLink?" act":"")+'" data-mylink="'+esc(name)+'">🔗 存课程</button>'+
+      '</div>'+
+      '<div class="tips">'+
+        ["起始","动作","注意"].map(function(lb,i){
+          return '<div class="row'+(i===2?" warn":"")+'"><i>'+lb+'</i><span>'+esc(tips[i]||"")+'</span></div>';
+        }).join('')+
+        '<div class="row"><i>Keep</i><span>在 Keep 搜索框输「'+esc(keepKey(name))+'」</span></div>'+
+      '</div>'+
+    '</div></div>';
+  return h;
+}
+
+/* 复制到剪贴板：局域网 http 下没有 clipboard API，用老办法兜底 */
+function legacyCopy(t){
+  try{
+    const ta = document.createElement("textarea");
+    ta.value = t;
+    ta.style.position = "fixed"; ta.style.top = "-1000px"; ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  }catch(e){ return false; }
+}
+function copyText(t){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    return navigator.clipboard.writeText(t).then(function(){ return true; })
+      .catch(function(){ return legacyCopy(t); });
+  }
+  return Promise.resolve(legacyCopy(t));
+}
+/* route 为空 = 只把 Keep 打开到首页 */
+function launchKeep(route){
+  if(S.set.autoOpenKeep === false) return false;
+  try{
+    location.href = keepOpenUrl(route || "");
+    return true;
+  }catch(e){ return false; }
+}
+/* 点「在 Keep 里找」：复制动作名 → 拉起 Keep → 粘贴搜索 */
+function openVideo(name){
+  const custom = S.set.links && S.set.links[name];
+  if(custom){
+    /* 存过 Keep 课程：直接跳进那节课 */
+    const route = keepRouteFromLink(custom);
+    if(route){ location.href = keepOpenUrl(route); }
+    else { const w = window.open(custom, "_blank"); if(!w) location.href = custom; }
+    return;
+  }
+  const q = keepKey(name);
+  copyText(q).then(function(ok){
+    if(!ok) toast("Keep 搜索词：「"+q+"」—— 手动输一下", 4000);
+  });
+  toast("已复制「"+q+"」，打开 Keep 粘贴搜索", 3200);
+}
+function setMyLink(name){
+  const cur = (S.set.links && S.set.links[name]) || "";
+  const v = prompt("把 Keep 里的课程链接粘贴到这里：\n\n"+
+    "· Keep 里找到课程或课程合集 → 右上角分享 → 复制链接\n"+
+    "· 形如 m.gotokeep.com/training/albums?id=...\n"+
+    "· 留空 = 恢复成「在 Keep 里搜索」\n\n"+keepKey(name), cur);
+  if(v===null) return;
+  if(!S.set.links) S.set.links = {};
+  if(v.trim()===""){ delete S.set.links[name]; toast("已恢复成在 Keep 里搜索"); }
+  else { S.set.links[name] = v.trim(); toast("已存下这个 Keep 课程"); }
+  save(); renderAll();
+}
+
+function renderTrain(){
+  const ds = cursor, todayTask = taskOf(ds);
+  const w = Math.min(Math.max(weekOf(ds),1),S.set.weeks);
+  const d = dayOf(ds);
+  const deload = isDeload(w);
+  let html = "";
+
+  if(keepFail){
+    html += '<div class="card" style="background:#FDECEC;border-color:#F3C9C5">'+
+      '<h2 style="color:#B4463C">没能直接打开 Keep</h2>'+
+      '<div class="tiny">你手机上的浏览器不接受这种跳转方式，所以刚才没打开 Keep。'+
+      '不影响用——<b>动作名已经复制好了</b>，你手动打开 Keep，在搜索框长按粘贴就行。<br><br>'+
+      '想要"一点直达"的话，用「🔗 存课程」：在 Keep 里找到课程 → 分享 → 复制链接 → 回来粘贴。'+
+      '存过的动作以后就是直接跳进那节课。</div>'+
+      '<div class="btn-row"><button class="btn ghost" data-keepfail-off="1">知道了</button></div>'+
+    '</div>';
+  }
+
+  /* 热身 */
+  html += '<div class="card">'+
+    '<h2>先热身 5–8 分钟</h2>'+
+    '<div class="warm">'+WARMUP.map(function(nm){
+      return '<button class="wchip" data-warm="'+esc(nm)+'">'+esc(nm)+' ▶</button>';
+    }).join('')+'</div>'+
+    '<div class="tiny" style="margin-top:9px">顺序：开合跳 30 秒 ×2 → 臀桥 15 次 ×2 → 徒手深蹲 15 次 ×2 → 弹力带侧步 10 步 ×2 → 肩绕环 10 次。点名字看视频。</div>'+
+  '</div>';
+
+  /* 今天 */
+  html += '<div class="card">'+
+    '<div class="chips"><span class="chip">今天</span>'+(deload?'<span class="chip warm">减量周 · 组数减半</span>':'')+'</div>'+
+    '<h1 style="font-size:18px">'+esc(TASK_TEXT[todayTask])+'</h1>'+
+    '<div class="muted">'+esc(TASK_HINT[todayTask])+'</div>'+
+  '</div>';
+
+  /* Keep 学习说明 */
+  html += '<div class="card" style="background:#F2F8F6;border-color:#CFE3DE">'+
+    '<h2 style="font-size:14px">用 Keep 学动作，4 步</h2>'+
+    '<div class="tiny">'+
+    '① 点动作下面的「在 Keep 里找」→ 动作名会自动复制，并跳到 Keep<br>'+
+    '② 在 Keep 首页点搜索框，长按粘贴，就能找到这个动作的课程<br>'+
+    '③ 挑一个你顺手的课程，点右上角分享 → 复制链接<br>'+
+    '④ 回到这里点「🔗 存课程」，把链接粘进去 —— 以后直接一点就进那个课程'+
+    '</div>'+
+    '<div class="tiny" style="margin-top:8px;color:#8A6A3A">用的是 Keep 官方的唤起方式（keep:// 协议）。'+
+    '如果点完没反应，会停在一个 Keep 自己的页面上，那里有绿色的「打开 Keep」按钮，点它就行。</div>'+
+    '<div class="btn-row"><button class="btn ghost" data-keep="1">打开 Keep 试试</button></div>'+
+  '</div>';
+
+  if(todayTask!=="CARDIO" && todayTask!=="REST"){
+    const P = PLANS[todayTask];
+    const ex = d.ex || [];
+    const nDone = P.moves.filter(function(_,i){ return ex[i]; }).length;
+    html += '<div class="card daycard today">'+
+      '<div class="chips"><span class="chip">'+P.tag+'</span><span class="chip '+(nDone===P.moves.length?"ok":"")+'">动作 '+nDone+'/'+P.moves.length+'</span></div>'+
+      '<h2 style="margin:8px 0 2px">'+esc(P.title)+'</h2>'+
+      '<div class="tiny" style="margin-bottom:4px">做完一个，点前面的方块打勾。第一次做先点「找教学视频」，再点「动作要点」看要领。</div>';
+    P.moves.forEach(function(m,i){
+      html += moveHtml(m[0], m, {tick:i, on:!!ex[i]});
+    });
+    html += '</div>';
+  } else {
+    html += '<div class="card"><div class="tiny">今天'+(todayTask==="CARDIO"?"是快走日":"休息，不用做力量")+
+      '。想提前预习动作，展开下面的训练日看视频和要点。</div></div>';
+  }
+
+  /* 其他训练日：可展开学习 */
+  const others = ["A","B","C","D"].filter(function(k){ return k!==todayTask; });
+  html += '<div class="sec-title">'+(others.length<4?"另外几天，先学着":"四天训练，逐个学")+'</div>';
+  others.forEach(function(k){
+    const P = PLANS[k];
+    html += '<div class="card daycard">'+
+      '<div class="chips"><span class="chip">'+P.tag+'</span></div>'+
+      '<h2 style="margin:8px 0 6px">'+esc(P.title)+'</h2>'+
+      '<button class="mini" data-open="1">展开 '+P.moves.length+' 个动作 ▾</button>'+
+      '<div class="daymoves">'+
+        P.moves.map(function(m){ return moveHtml(m[0], m, {}); }).join('')+
+      '</div>'+
+    '</div>';
+  });
+
+  html += '<div class="sec-title">什么时候加重</div><div class="card">'+
+    '<div class="tiny">• 目标次数上限都能完成（比如 4×12）→ 下次加 2.5–5% 重量，哑铃加一档。<br>'+
+    '• 做不到下限 → 重量不变，先把次数补上来。<br>'+
+    '• 每周至少有一个动作比上周多 1 次或重一点，就算进步。<br>'+
+    '• 第 6 周和第 12 周是减量周：组数减半，重量不变，不追求进步。</div>'+
+  '</div>';
+
+  html += '<div class="sec-title">有氧与步数</div><div class="card">'+
+    '<div class="tiny">• 周三、周五：快走 30–40 分钟，心率 120–140。<br>'+
+    '• 每天 8000–10000 步，通勤走路都算。<br>'+
+    '• 周日散步 20–30 分钟，完全放松。<br>'+
+    '• 有氧不要挤掉力量训练，时间紧就少走 10 分钟。</div>'+
+  '</div>';
+
+  const v = document.getElementById("v-train");
+  v.innerHTML = html;
+  on(v,"[data-vid]","click",function(e){ e.stopPropagation(); openVideo(this.getAttribute("data-vid")); });
+  on(v,"[data-keep]","click",function(e){
+    e.stopPropagation();
+    const keys = Object.keys(S.set.links||{});
+    if(!keys.length){
+      toast("先存一节课的链接：任意动作点「🔗 存课程」", 4000);
+      return;
+    }
+    const r = keepRouteFromLink(S.set.links[keys[0]]);
+    if(r){ toast("正在打开 Keep"); launchKeep(r); }
+    else toast("存的那条链接不是 Keep 的，换一条试试", 3500);
+  });
+  on(v,"[data-keepfail-off]","click",function(e){
+    e.stopPropagation();
+    keepFail = false; renderAll();
+  });
+  on(v,"[data-warm]","click",function(e){ e.stopPropagation(); openVideo(this.getAttribute("data-warm")); });
+  on(v,"[data-mylink]","click",function(e){ e.stopPropagation(); setMyLink(this.getAttribute("data-mylink")); });
+  on(v,"[data-tip]","click",function(e){
+    e.stopPropagation();
+    const box = this.parentNode.nextElementSibling;
+    if(box && box.classList.contains("tips")) box.classList.toggle("on");
+  });
+  on(v,"[data-open]","click",function(e){
+    e.stopPropagation();
+    const box = this.nextElementSibling;
+    const open = box.classList.toggle("on");
+    this.textContent = open ? "收起动作 ▲" : "展开 "+box.querySelectorAll(".ex").length+" 个动作 ▾";
+  });
+  on(v,"[data-ex]","click",function(){
+    const i = Number(this.getAttribute("data-ex"));
+    const dd = dayOf(ds);
+    if(!dd.ex) dd.ex = [];
+    dd.ex[i] = !dd.ex[i];
+    const P = PLANS[todayTask];
+    if(dd.ex.filter(Boolean).length === P.moves.length){
+      if(!dd.train){ dd.train = true; toast("全部动作完成，训练已自动打勾 ✓"); }
+    }
+    save(); renderAll();
+  });
+}
+
+/* ══════════════ 视图：饮食 ══════════════ */
+function renderDiet(){
+  const w = Math.min(Math.max(weekOf(cursor),1),S.set.weeks);
+  const cur = phaseOf(w);
+  let html = "";
+
+  html += '<div class="card">'+
+    '<div class="chips"><span class="chip">第 '+w+' 周</span><span class="chip warm">'+esc(cur.name)+'</span></div>'+
+    '<h1>每天 '+phaseKcal(cur)+' kcal</h1>'+
+    '<div class="muted">蛋白 '+cur.p+'g ｜ 脂肪 '+cur.f+'g ｜ 碳水 '+cur.c+'g　·　饮水 2–2.5L</div>'+
+    '<div class="tiny" style="margin-top:8px">'+esc(cur.tip)+'</div>'+
+  '</div>';
+
+  html += '<div class="sec-title">三个阶段的热量</div><div class="tbl-wrap"><table>'+
+    '<tr><th>阶段</th><th class="n">热量</th><th class="n">蛋白</th></tr>';
+  PHASES.forEach(function(p,i){
+    const label = i===0?"第 1–2 周":(i===1?"第 3–8 周":"第 9–12 周");
+    const active = (p===cur);
+    html += '<tr'+(active?' style="background:#E9F1F0"':'')+'><td>'+label+(active?' ✔':'')+'</td>'+
+      '<td class="n">'+phaseKcal(p)+'</td><td class="n">'+p.p+' g</td></tr>';
+  });
+  html += '</table></div>';
+
+  html += '<div class="sec-title">三餐怎么分</div><div class="tbl-wrap"><table>'+
+    '<tr><th>餐次</th><th class="n">热量</th><th class="n">蛋白</th></tr>';
+  MEALS.forEach(function(m){
+    html += '<tr><td><b>'+esc(m[0])+'</b><div class="tiny">'+esc(m[3])+'</div></td>'+
+      '<td class="n">'+esc(m[1])+'</td><td class="n">'+esc(m[2])+'</td></tr>';
+  });
+  html += '<tr style="background:#F7FAFA"><td><b>合计</b></td><td class="n"><b>'+phaseKcal(cur)+'</b></td><td class="n"><b>'+cur.p+' g</b></td></tr>';
+  html += '</table></div>';
+
+  /* 手测量法 */
+  html += '<div class="sec-title">「一拳」到底是多少</div><div class="card">'+
+    '<div class="tiny">这里的拳、掌、拇指不是重量单位，是<b>用你自己的手当量具</b>。'+
+    '手的大小跟身高体型走，所以高矮胖瘦都不用换算法，量出来天然适合你。</div>'+
+    '<div class="tbl-wrap" style="margin-top:10px"><table>'+
+      '<tr><th>手势</th><th>大概等于</th><th class="n">热量</th></tr>'+
+      '<tr><td><b>一拳主食</b><div class="tiny">米饭、红薯、玉米</div></td>'+
+        '<td>熟饭 100–150g<div class="tiny">≈ 家里的半碗饭</div></td><td class="n">130–180</td></tr>'+
+      '<tr><td><b>一拳蔬菜</b><div class="tiny">熟菜、沙拉</div></td>'+
+        '<td>100–150g<div class="tiny">生菜的话是一大把</div></td><td class="n">20–40</td></tr>'+
+      '<tr><td><b>一巴掌蛋白质</b><div class="tiny">掌心大小，不含手指<br>厚度约等于手掌厚</div></td>'+
+        '<td>生肉 / 鱼 100–150g<div class="tiny">鸡蛋 2–3 个</div></td><td class="n">150–220</td></tr>'+
+      '<tr><td><b>一拇指脂肪</b><div class="tiny">大拇指大小</div></td>'+
+        '<td>油 1 汤匙 / 坚果 10g<div class="tiny">牛油果 1/4 个</div></td><td class="n">约 100</td></tr>'+
+    '</table></div>'+
+    '<div class="tiny" style="margin-top:10px">两个容易出错的地方：'+
+    '<b>主食最容易量多</b>，一拳差不多是半碗饭，堆成小山就超了；'+
+    '<b>蛋白质最容易吃不够</b>，很多人以为吃了一巴掌，其实只有 70g 左右。'+
+    '刚开始两周，用厨房秤称几次校准一下手感，之后就可以一直用手量了。</div>'+
+  '</div>';
+
+  html += '<div class="sec-title">照着吃的菜单</div><div class="card">';
+  MEALS.forEach(function(m){
+    html += '<div class="ex"><div style="flex:1"><div class="nm">'+esc(m[0])+'（'+esc(m[1])+' kcal）</div>'+
+      '<div class="mt">'+esc(m[4])+'</div></div></div>';
+  });
+  html += '<div class="ex"><div style="flex:1"><div class="nm">训练日调整</div>'+
+    '<div class="mt">晚上主食加半拳，从当天脂肪里扣（少 1 勺油 或 少 10g 坚果）。</div></div></div>';
+  html += '</div>';
+
+  html += '<div class="sec-title">食物交换清单</div><div class="card">';
+  EXCHANGE.forEach(function(e){
+    html += '<div class="ex"><div style="flex:1"><div class="nm">'+esc(e[0])+'</div>'+
+      '<div class="mt">'+esc(e[1])+'</div></div></div>';
+  });
+  html += '</div>';
+
+  html += '<div class="sec-title">外卖和聚餐</div><div class="card"><div class="tiny">'+
+    '• 先点蛋白质和蔬菜，主食减半，先吃菜和肉最后吃饭。<br>'+
+    '• 酱汁单独放蘸着吃，油炸换清炒 / 蒸 / 烤。<br>'+
+    '• 饮料换无糖茶或气泡水，酒精尽量不喝（1 杯啤酒 ≈ 150 kcal）。<br>'+
+    '• 聚餐当天白天吃清淡些，不用饿肚子，第二天照常吃就好。</div></div>';
+
+  /* 抗炎 / 上火搭配 */
+  html += '<div class="sec-title">上火 / 抗炎搭配</div>'+
+    '<div class="card" style="border-color:#F0DCC0;background:#FFFCF7">'+
+    '<div class="tiny">熬夜、辣椒烧烤、酒、喝水少，再加上减脂期热量缺口和训练压力，身体处在低度应激里，'+
+    '就容易表现为口干、嗓子痛、长痘、心烦——也就是我们说的「上火」。对策不是吃什么神奇食物，而是'+
+    '<b>把促炎的东西换掉，再把抗炎的加进来</b>。</div>'+
+    '<div style="margin-top:10px"><b style="font-size:13.5px">每天加这几样（不额外加热量）</b></div>'+
+    '<div class="tiny" style="margin-top:5px">'+
+    '• 深色蔬菜 2 拳：西兰花、菠菜、青椒、番茄<br>'+
+    '• 富含 omega-3 的鱼 2–3 次/周：三文鱼、鲭鱼、沙丁鱼<br>'+
+    '• 浆果一小把：蓝莓、草莓、桑葚<br>'+
+    '• 坚果 10g：核桃、杏仁（热量高，按份吃）<br>'+
+    '• 姜、蒜、姜黄（配一点黑胡椒）、绿茶<br>'+
+    '• 无糖酸奶或纳豆一份，养肠道<br>'+
+    '• 烹调油换成橄榄油，每天 1–2 勺就够<br>'+
+    '• 水喝到 2–2.5L，这条比什么都直接</div>'+
+    '<div style="margin-top:12px"><b style="font-size:13.5px">这几样先少碰</b></div>'+
+    '<div class="tiny" style="margin-top:5px">'+
+    '• 油炸、烧烤、火锅辣锅　• 奶茶和含糖饮料　• 酒精<br>'+
+    '• 起酥点心、植脂末（反式脂肪）　• 香肠腊肉等加工肉<br>'+
+    '• 熬夜本身，比吃错更「上火」</div>'+
+    '<div style="margin-top:12px"><b style="font-size:13.5px">一天怎么搭（在 '+phaseKcal(cur)+' kcal 里）</b></div>'+
+    '<div class="tiny" style="margin-top:5px">'+
+    '早餐：燕麦 40g + 无糖酸奶 150g + 蓝莓一把 + 亚麻籽 5g<br>'+
+    '午餐：杂粮饭 + 三文鱼或鸡胸 150g + 西兰花 + 番茄 + 橄榄油 1 勺<br>'+
+    '加餐：猕猴桃 1 个，或核桃 2 个<br>'+
+    '晚餐：姜丝蒸鱼 / 豆腐 + 深色蔬菜 2 拳 + 少量小米粥<br>'+
+    '白天：菊花茶、淡绿茶当水喝，不加糖</div>'+
+    '<div class="tiny" style="margin-top:10px;color:#9A5B12">传统上「降火」常用的菊花、金银花、绿豆汤、梨、白萝卜、莲子心，'+
+    '当水喝不加糖就行。但如果咽痛、发热、口腔溃疡超过两周不好，别硬扛，去看医生。</div>'+
+  '</div>';
+
+  html += '<div class="sec-title">周日备餐 1 小时</div><div class="card"><div class="tiny">'+
+    '• 煮一锅杂粮饭分装 5 份；鸡胸 4 块 + 鸡蛋 6 个煮好。<br>'+
+    '• 蔬菜洗切好放保鲜盒，坚果按 10g 分装。<br>'+
+    '• 意义是：饿的时候手边有能直接吃的东西。</div></div>';
+
+  document.getElementById("v-diet").innerHTML = html;
+}
+
+/* ══════════════ 视图：数据 ══════════════ */
+function renderData(){
+  const wpts = weightPoints();
+  let allChk = 0, daysLogged = 0, streak = 0;
+  Object.keys(S.days).forEach(function(k){
+    const d = S.days[k];
+    const c = countDone(k);
+    if(c>0){ daysLogged++; allChk += c; }
+  });
+  /* 连续打卡（今天还没记就从昨天往前算） */
+  let anchor = todayISO();
+  if(!(S.days[anchor] && countDone(anchor)>0)) anchor = addDays(anchor,-1);
+  for(let i=0;i<400;i++){
+    const ds = addDays(anchor,-i);
+    if(S.days[ds] && countDone(ds)>0) streak++; else break;
+  }
+  const cur = wpts.length? wpts[wpts.length-1].y : null;
+  const delta = cur!=null? r1(cur - S.set.startWeight) : null;
+
+  let html = "";
+  html += '<div class="kpis">'+
+    kpi(cur!=null?cur:"—","当前体重 (kg)")+
+    kpi(delta!=null?((delta>0?"+":"")+delta):"—","相比起始")+
+    kpi(streak+" 天","连续打卡")+
+  '</div>';
+
+  html += '<div class="sec-title">体重曲线</div><div class="card">'+
+    '<canvas id="chart"></canvas>'+
+    '<div class="legend"><span><i style="background:#2F5D62"></i>实际体重</span>'+
+    '<span><i style="background:#E8933C"></i>参考进度（每周 −0.45kg）</span></div>'+
+    (wpts.length<2?'<div class="empty">至少记录 2 天的晨重，曲线就会出来</div>':'')+
+  '</div>';
+
+  html += '<div class="sec-title">每周明细</div><div class="tbl-wrap"><table>'+
+    '<tr><th class="n">周</th><th class="n">周平均</th><th class="n">变化</th><th class="n">腰围</th><th class="n">训练</th><th class="n">打卡</th></tr>';
+  let prev = null;
+  for(let w=1; w<=S.set.weeks; w++){
+    const st = weekStats(w);
+    const wk = S.weeks[w] || {};
+    const d = (st.avgWeight!=null && prev!=null)? r1(st.avgWeight-prev) : null;
+    if(st.avgWeight!=null) prev = st.avgWeight;
+    const started = diffDays(S.set.startDate, todayISO()) >= (w-1)*7;
+    html += '<tr'+(w===weekOf(cursor)?' style="background:#E9F1F0"':'')+'>'+
+      '<td class="n">'+w+'</td>'+
+      '<td class="n">'+(st.avgWeight!=null?st.avgWeight:"—")+'</td>'+
+      '<td class="n" style="color:'+(d!=null&&d<0?"#37855A":"#6C7B7C")+'">'+(d!=null?(d>0?"+":"")+d:"—")+'</td>'+
+      '<td class="n"><input type="number" step="0.1" inputmode="decimal" data-waist="'+w+'" value="'+
+        (wk.waist!=null?wk.waist:"")+'" placeholder="'+(started?"":"—")+'" '+
+        'style="width:58px;padding:4px 6px;text-align:center;font-size:13px"></td>'+
+      '<td class="n">'+st.trainCnt+'/4</td>'+
+      '<td class="n">'+st.chkCnt+'/28</td></tr>';
+  }
+  html += '</table></div>';
+  html += '<div class="tiny" style="margin:8px 4px 0">周平均体重按「12周打卡表」里的晨重自动算；腰围每周量一次填进去。<br>'+
+    '连续 2 周周平均没下降 → 每天少吃 100 kcal，或多走 2000 步（二选一）。一周掉超过 1kg → 加回 100–150 kcal。</div>';
+
+  document.getElementById("v-data").innerHTML = html;
+
+  on(document.getElementById("v-data"),"[data-waist]","input",function(){
+    const w = Number(this.getAttribute("data-waist"));
+    if(!S.weeks[w]) S.weeks[w] = {};
+    const v = this.value.trim();
+    if(v===""){ delete S.weeks[w].waist; } else { S.weeks[w].waist = Number(v); }
+    save();
+  });
+  drawChart();
+}
+
+function drawChart(){
+  const cv = document.getElementById("chart");
+  if(!cv) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.clientWidth || 320, H = 186;
+  cv.width = W*dpr; cv.height = H*dpr;
+  const ctx = cv.getContext("2d");
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+
+  const pts = weightPoints();
+  if(pts.length<2) return;
+
+  const padL=34, padR=10, padT=12, padB=22;
+  const pw = W-padL-padR, phh = H-padT-padB;
+  const x0 = Math.min(0, pts[0].x);
+  const x1 = Math.max(S.set.weeks*7-1, pts[pts.length-1].x);
+  const ref = function(i){ return S.set.startWeight - 0.45*(i/7); };
+  let lo = Math.min.apply(null, pts.map(function(p){return p.y;}));
+  let hi = Math.max.apply(null, pts.map(function(p){return p.y;}));
+  lo = Math.min(lo, ref(x0), ref(x1));
+  hi = Math.max(hi, ref(x0), ref(x1));
+  const sp = Math.max(0.6, hi-lo);
+  lo -= sp*0.15; hi += sp*0.15;
+  const X = function(i){ return padL + ((i-x0)/(x1-x0))*pw; };
+  const Y = function(v){ return padT + (1-(v-lo)/(hi-lo))*phh; };
+
+  /* 网格 + y 轴 */
+  ctx.font = "10px -apple-system,sans-serif";
+  ctx.fillStyle = "#8B9A9B"; ctx.textAlign = "right"; ctx.textBaseline = "middle";
+  for(let g=0; g<=3; g++){
+    const v = lo + (hi-lo)*(g/3), y = Y(v);
+    ctx.strokeStyle = "#EAF0EF"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(W-padR,y); ctx.stroke();
+    ctx.fillText(v.toFixed(1), padL-6, y);
+  }
+  /* x 轴：每 2 周标一次 */
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  for(let w=1; w<=S.set.weeks; w+=2){
+    const xi = (w-1)*7;
+    if(xi < x0 || xi > x1) continue;
+    const x = X(xi);
+    ctx.fillText(w+"周", x, padT+phh+6);
+  }
+  /* 参考线 */
+  ctx.save();
+  ctx.setLineDash([5,4]); ctx.strokeStyle = "#E8933C"; ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  for(let i=x0;i<=x1;i+=3){
+    const x=X(i), y=Y(ref(i));
+    if(i===x0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  }
+  ctx.stroke(); ctx.restore();
+
+  /* 实际曲线 */
+  const grad = ctx.createLinearGradient(0,padT,0,padT+phh);
+  grad.addColorStop(0,"rgba(47,93,98,.22)");
+  grad.addColorStop(1,"rgba(47,93,98,0)");
+  ctx.beginPath();
+  pts.forEach(function(p,i){ const x=X(p.x), y=Y(p.y); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
+  ctx.lineTo(X(pts[pts.length-1].x), padT+phh);
+  ctx.lineTo(X(pts[0].x), padT+phh);
+  ctx.closePath(); ctx.fillStyle = grad; ctx.fill();
+
+  ctx.beginPath();
+  pts.forEach(function(p,i){ const x=X(p.x), y=Y(p.y); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
+  ctx.strokeStyle = "#2F5D62"; ctx.lineWidth = 2.2; ctx.lineJoin = "round"; ctx.stroke();
+
+  pts.forEach(function(p){
+    ctx.beginPath(); ctx.arc(X(p.x), Y(p.y), 2.6, 0, 7);
+    ctx.fillStyle = "#fff"; ctx.fill();
+    ctx.strokeStyle = "#2F5D62"; ctx.lineWidth = 1.8; ctx.stroke();
+  });
+  const lastP = pts[pts.length-1];
+  ctx.beginPath(); ctx.arc(X(lastP.x), Y(lastP.y), 4.2, 0, 7);
+  ctx.fillStyle = "#2F5D62"; ctx.fill();
+}
+
+/* ══════════════ 视图：设置 ══════════════ */
+function renderSet(){
+  const s = S.set;
+  let html = "";
+  if(!storageOK){
+    html += '<div class="card" style="background:#FDECEC;border-color:#F3C9C5">'+
+      '<h2 style="color:#B4463C">⚠️ 这台手机不允许保存数据</h2>'+
+      '<div class="tiny">当前浏览器禁用了本地存储，勾选的内容关掉页面就会丢。'+
+      '换用 Chrome 打开这个文件，或者每天收工前点下面的「导出备份」存一份。</div></div>';
+  }
+  html += '<div class="sec-title">我的数据</div><div class="card">'+
+    '<div class="field"><label>开始日期</label><input type="date" id="sStart" value="'+esc(s.startDate||todayISO())+'"></div>'+
+    '<div class="field"><label>身高</label><input type="number" inputmode="decimal" id="sH" value="'+s.height+'"><span class="unit">cm</span></div>'+
+    '<div class="field"><label>起始体重</label><input type="number" step="0.1" inputmode="decimal" id="sW0" value="'+s.startWeight+'"><span class="unit">kg</span></div>'+
+    '<div class="field"><label>目标体重</label><input type="number" step="0.1" inputmode="decimal" id="sW1" value="'+s.targetWeight+'"><span class="unit">kg</span></div>'+
+    '<div class="field"><label>起始腰围</label><input type="number" step="0.1" inputmode="decimal" id="sWa" value="'+(s.waistStart!=null?s.waistStart:"")+'"><span class="unit">cm</span></div>'+
+    '<div class="tiny" style="margin-top:10px">改变开始日期会重新划分周次，已有的记录不会丢。</div>'+
+  '</div>';
+
+  html += '<div class="sec-title">减脂热量</div><div class="card">'+
+    '<div class="field"><label>第 1–2 周</label><input type="number" inputmode="numeric" id="sK1" value="'+s.phaseKcal[0]+'"><span class="unit">kcal</span></div>'+
+    '<div class="field"><label>第 3–8 周</label><input type="number" inputmode="numeric" id="sK2" value="'+s.phaseKcal[1]+'"><span class="unit">kcal</span></div>'+
+    '<div class="field"><label>第 9–12 周</label><input type="number" inputmode="numeric" id="sK3" value="'+s.phaseKcal[2]+'"><span class="unit">kcal</span></div>'+
+  '</div>';
+
+  const savedLinks = Object.keys(S.set.links||{});
+  html += '<div class="sec-title">动作教学 · 只走 Keep</div><div class="card">'+
+    '<div class="tiny">训练页每个动作下面有两个入口：</div>'+
+    '<div class="tiny" style="margin-top:6px">'+
+    '· <b>在 Keep 里找</b> —— 自动复制动作名，并跳到 Keep，你在搜索框粘贴就能找到课程<br>'+
+    '· <b>🔗 存课程</b> —— 在 Keep 里分享某节课或某个课程合集，把链接存下来；'+
+    '之后点这个动作就是<b>直接跳进那节课</b></div>'+
+    '<div class="tiny" style="margin-top:10px">'+
+    (savedLinks.length ? '已经存了 <b>'+savedLinks.length+'</b> 个 Keep 课程链接。' :
+      '还没存课程链接。建议第一次先把常用的 5–6 个动作存好，之后就省事了。')+
+    '</div>'+
+    '<div class="field"><label>自动跳转</label><select id="sAutoKeep">'+
+      '<option value="1"'+(S.set.autoOpenKeep!==false?" selected":"")+'>点的时候尝试打开 Keep</option>'+
+      '<option value="0"'+(S.set.autoOpenKeep===false?" selected":"")+'>只复制搜索词，不跳转</option>'+
+    '</select></div>'+
+    '<div class="tiny" style="margin-top:6px">你这台手机上自动跳转没成功，如果嫌它碍事，就选第二个。</div>'+
+    '<div class="btn-row">'+
+      '<button class="btn ghost" id="btnKeep">打开 Keep</button>'+
+      (savedLinks.length ? '<button class="btn line" id="btnClearLinks">清空已存课程</button>' : '')+
+    '</div>'+
+  '</div>';
+
+  html += '<div class="sec-title">数据管理</div><div class="card">'+
+    '<div class="tiny">所有记录只存在这台手机的浏览器里，不会上传到任何服务器。换手机或清缓存前记得导出一份。</div>'+
+    '<div class="btn-row">'+
+      '<button class="btn ghost" id="btnExport">导出备份</button>'+
+      '<button class="btn line" id="btnImport">导入备份</button>'+
+      '<button class="btn line" id="btnCsv">导出打卡表 (CSV)</button>'+
+      '<button class="btn danger" id="btnReset">清空全部</button>'+
+    '</div>'+
+    '<input type="file" id="fileIn" accept=".json,application/json" style="display:none">'+
+  '</div>';
+
+  html += '<div class="sec-title">怎么加到手机桌面</div><div class="card"><div class="tiny">'+
+    'iPhone：用 Safari 打开 → 底部分享按钮 → 「添加到主屏幕」。<br>'+
+    '安卓：用 Chrome 打开 → 右上角菜单 → 「添加到主屏幕」。<br>'+
+    '加完就是一个独立图标，离线也能用，每天点开勾一下就行。</div></div>';
+
+  html += '<div class="sec-title">计划要点</div><div class="card"><div class="tiny">'+
+    '• 目标：68.8kg → 63.5kg 左右，腰围 80cm → 71–74cm。<br>'+
+    '• 每周 4 天力量训练（周一 / 周二 / 周四 / 周六），周三周五快走。<br>'+
+    '• 每天 8000 步以上，睡够 7 小时。<br>'+
+    '• 第 6 周和第 12 周减量，组数减半。<br>'+
+    '• 看趋势不看单天：体重上下 1–2kg 的波动是水分，正常。</div></div>';
+
+  document.getElementById("v-set").innerHTML = html;
+
+  const bind = function(id, fn){
+    const el = document.getElementById(id);
+    if(el) el.addEventListener("change",function(){ fn(this.value); save(); renderAll(); });
+  };
+  bind("sStart", function(v){ if(v) S.set.startDate = v; });
+  bind("sH", function(v){ S.set.height = Number(v)||168; });
+  bind("sW0", function(v){ S.set.startWeight = Number(v)||68.8; });
+  bind("sW1", function(v){ S.set.targetWeight = Number(v)||63.5; });
+  bind("sWa", function(v){ S.set.waistStart = v===""?null:Number(v); });
+  bind("sK1", function(v){ S.set.phaseKcal[0] = Number(v)||1700; });
+  bind("sK2", function(v){ S.set.phaseKcal[1] = Number(v)||1600; });
+  bind("sK3", function(v){ S.set.phaseKcal[2] = Number(v)||1550; });
+
+  const bk = document.getElementById("btnKeep");
+  if(bk) bk.addEventListener("click",function(){
+    const keys = Object.keys(S.set.links||{});
+    if(!keys.length){ toast("先存一节课的链接，这里就能直接打开 Keep", 3600); return; }
+    const r = keepRouteFromLink(S.set.links[keys[0]]);
+    if(r && IS_ANDROID){ toast("正在打开 Keep"); launchKeep(r); }
+    else if(r){ location.href = keepOpenUrl(r); }
+    else toast("存的那条链接不是 Keep 的", 3200);
+  });
+  const sa = document.getElementById("sAutoKeep");
+  if(sa) sa.addEventListener("change",function(){
+    S.set.autoOpenKeep = (this.value === "1");
+    save(); renderAll();
+    toast(S.set.autoOpenKeep ? "已打开：点的时候会尝试跳 Keep" : "已改成只复制，不跳转");
+  });
+  const bl = document.getElementById("btnClearLinks");
+  if(bl) bl.addEventListener("click",function(){
+    if(confirm("清空所有已存的 Keep 课程链接？")){
+      S.set.links = {}; save(); renderAll(); toast("已清空");
+    }
+  });
+
+  document.getElementById("btnExport").addEventListener("click",function(){
+    const blob = new Blob([JSON.stringify(S,null,2)],{type:"application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "身材打卡备份-"+todayISO()+".json";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    toast("备份已导出");
+  });
+  document.getElementById("btnImport").addEventListener("click",function(){
+    document.getElementById("fileIn").click();
+  });
+  document.getElementById("fileIn").addEventListener("change",function(){
+    const f = this.files && this.files[0]; if(!f) return;
+    const fr = new FileReader();
+    fr.onload = function(){
+      try{
+        const o = JSON.parse(fr.result);
+        S.set = Object.assign({},DEFAULT_SET,o.set||{});
+        S.days = o.days||{}; S.weeks = o.weeks||{};
+        save(); renderAll(); toast("导入成功");
+      }catch(e){ toast("文件读不出来，可能不是备份文件"); }
+    };
+    fr.readAsText(f);
+  });
+  document.getElementById("btnCsv").addEventListener("click",function(){
+    const rows = [["周次","日期","星期","任务","训练","步数","饮食","睡眠","晨重(kg)","备注"]];
+    for(let i=0;i<S.set.weeks*7;i++){
+      const ds = addDays(S.set.startDate,i), d = S.days[ds]||{};
+      const task = TASK_TEXT[taskOf(ds)];
+      rows.push([weekOf(ds), ds, WD[parseISO(ds).getDay()], task,
+        d.train?"✔":"", d.steps?"✔":"", d.diet?"✔":"", d.sleep?"✔":"",
+        d.weight!=null?d.weight:"", (d.note||"").replace(/[\r\n,]/g," ")]);
+    }
+    const csv = "\ufeff"+rows.map(function(r){ return r.join(","); }).join("\r\n");
+    const blob = new Blob([csv],{type:"text/csv;charset=utf-8"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "12周打卡表-"+todayISO()+".csv";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    toast("CSV 已导出，可用 Excel 打开");
+  });
+  document.getElementById("btnReset").addEventListener("click",function(){
+    if(confirm("确定要清空全部记录吗？这个操作不能撤销。")){
+      localStorage.removeItem(KEY);
+      S = {set:Object.assign({},DEFAULT_SET,{startDate:todayISO()}), days:{}, weeks:{}};
+      cursor = todayISO(); renderAll(); toast("已清空");
+    }
+  });
+}
+
+/* ══════════════ 路由与渲染 ══════════════ */
+let view = "today";
+let keepFail = KEEP_FAILED;
+function renderAll(){
+  renderHeader();
+  if(view==="today") renderToday();
+  else if(view==="train") renderTrain();
+  else if(view==="diet") renderDiet();
+  else if(view==="data") renderData();
+  else renderSet();
+}
+function go(v){
+  view = v;
+  $$("nav button").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-go")===v); });
+  $$(".view").forEach(function(s){ s.classList.toggle("on", s.id==="v-"+v); });
+  window.scrollTo(0,0);
+  renderAll();
+}
+document.addEventListener("click",function(e){
+  const b = e.target.closest("[data-go]");
+  if(b){ go(b.getAttribute("data-go")); }
+});
+window.addEventListener("resize",function(){ if(view==="data") drawChart(); });
+
+/* 清单和离线缓存由同目录的 manifest.webmanifest / sw.js 提供 */
+
+load();
+cursor = todayISO();
+if(keepFail){
+  try{ history.replaceState(null,"",location.href.split("?")[0]); }catch(e){}
+  go("train");
+} else {
+  renderAll();
+}
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>
